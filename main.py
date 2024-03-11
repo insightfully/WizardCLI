@@ -1,21 +1,30 @@
 import argparse
+import configparser
 from openai import OpenAI
 
+# Read Config file
+config = configparser.ConfigParser()  
+config.read('config.ini')
+
+# Assign config values to variables
+explain_prompt = config.get('prompts', 'explain_prompt')
+default_prompt = config.get('prompts', 'default_prompt')
+base_url = config.get('server', 'base_url')
+api_key = config.get('server', 'api_key')
+model_temperature = config.get('model','temperature')
+
 # Point to the local server (LM Studio HTTP server)
-client = OpenAI(base_url="http://localhost:1234/v1", api_key="not-needed")
-
-explain_prompt = "Explain the linux/bash/shell/terminal command. Keep your response short yet helpful and provide the appropriate amount of short examples. get straight to the point do not repeat the question."
-default_prompt = "Keep your response short yet helpful and provide the appropriate amount of examples"
-
+client = OpenAI(base_url=base_url, api_key=api_key)
 
 def query(sysPrompt,query):
+    # Send completion request to LM Studio HTTP server
     completion = client.chat.completions.create(
     model="local-model",
     messages=[
         {"role": "system", "content": sysPrompt},
         {"role": "user", "content": query}
     ],
-    temperature=0.7,
+    temperature=model_temperature,
     )
 
     return completion.choices[0].message.content
