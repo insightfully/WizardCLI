@@ -1,6 +1,9 @@
 import argparse
 import configparser
 from openai import OpenAI
+import re
+from colorama import Fore, Style
+from colorama import init
 
 # Read Config file
 config = configparser.ConfigParser()  
@@ -12,6 +15,7 @@ default_prompt = config.get('prompts', 'default_prompt')
 base_url = config.get('server', 'base_url')
 api_key = config.get('server', 'api_key')
 model_temperature = config.get('model','temperature')
+compact = config.get('output','compact')
 
 # Point to the local server (LM Studio HTTP server)
 client = OpenAI(base_url=base_url, api_key=api_key)
@@ -31,6 +35,21 @@ def query(sysPrompt,query):
 
 
 
+# Remove junk styling automatically added by gemma
+def clean_text(text):
+    # Replace markdown styling with colorama colors
+    cleaned_text = re.sub(r'\*\*(.*?)\*\*', f'{Fore.BLUE}\\1{Style.RESET_ALL}', text)
+    cleaned_text = re.sub(r'`([^`]+)`', f'{Fore.GREEN}\\1{Style.RESET_ALL}', cleaned_text)
+
+    # Remove code blocks
+    cleaned_text = re.sub(r'```[^`]+```', '', cleaned_text)
+
+    if compact == "True":
+        # Remove extra newlines to make the response more compact
+        cleaned_text = re.sub(r'\n{2,}', '\n', cleaned_text)
+
+    return cleaned_text.strip()
+
 # Create ArgumentParser object
 parser = argparse.ArgumentParser(description='Query self-hosted AI without leaving your terminal')
 
@@ -46,6 +65,6 @@ args = parser.parse_args()
 
 # Access parsed argument , determine correct system prompt and print result
 if args.explain != None:
-    print(query(explain_prompt,args.explain))
+    print(clean_text(query(explain_prompt,args.explain)))
 else:
     print(query(default_prompt,args.general))
