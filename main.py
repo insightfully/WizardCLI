@@ -4,6 +4,8 @@ from openai import OpenAI
 import re
 from colorama import Fore, Style
 from colorama import init
+from llama_cpp import Llama
+import json
 
 # Read Config file
 config = configparser.ConfigParser()  
@@ -17,6 +19,23 @@ api_key = config.get('server', 'api_key')
 model_temperature = config.get('model','temperature')
 compact = config.get('output','compact')
 
+def llama_cpp_query(sysPrompt,query):
+    llm = Llama(
+      model_path="C:\Users\7\.cache\lm-studio\models\lmstudio-ai\gemma-2b-it-GGUF\gemma-2b-it-q8_0.gguf",)
+    
+    # Generate a completion
+    llm.create_chat_completion(
+      messages = [
+          {"role": "system", "content": sysPrompt},
+          {
+              "role": "user",
+              "content": query
+          }
+      ]
+)
+    
+    print(llm)
+    
 # Point to the local server (LM Studio HTTP server)
 client = OpenAI(base_url=base_url, api_key=api_key)
 
@@ -67,4 +86,4 @@ args = parser.parse_args()
 if args.explain != None:
     print(clean_text(query(explain_prompt,args.explain)))
 else:
-    print(query(default_prompt,args.general))
+    print(clean_text(query(default_prompt,args.general)))
