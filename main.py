@@ -21,7 +21,7 @@ compact = config.get('output','compact')
 
 def llama_cpp_query(sysPrompt,query):
     llm = Llama(
-      model_path="C:\Users\7\.cache\lm-studio\models\lmstudio-ai\gemma-2b-it-GGUF\gemma-2b-it-q8_0.gguf",)
+      model_path=path,)
     
     # Generate a completion
     llm.create_chat_completion(
